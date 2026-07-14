@@ -4,33 +4,63 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>이상형 월드컵</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-   미션 — title / items 를 원하는 내용으로 바꾸세요.
-   items 는 총 16개 (8강 기준). image 자리에는 나중에 실제 이미지 주소를 넣으면 됩니다.
-   ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ */
+   미션 — worldcups 배열에 원하는 월드컵을 추가/수정하세요.
+   각 월드컵은 items 16개(8강 기준)를 가져야 합니다. image / thumbnail 자리에는
+   나중에 실제 이미지 주소를 넣으면 됩니다.
+
+   Supabase 설정 — supabaseUrl / supabaseAnonKey 를 프로젝트 값으로 교체하세요.
+   (Supabase 대시보드 → Project Settings → API 에서 확인 가능)
+
+   ── Supabase에 필요한 테이블 (SQL Editor에서 실행) ──
+   create table stats (
+     key text primary key,       -- worldcupId::후보이름 형태의 고유키
+     worldcup text not null,     -- 월드컵 id
+     name text not null,         -- 후보 이름
+     wins int not null default 0,
+     matches int not null default 0
+   );
+
+   alter table stats enable row level security;
+   create policy "public read" on stats for select using (true);
+   create policy "public upsert" on stats for insert with check (true);
+   create policy "public update" on stats for update using (true);
+   ────────────────────────────────────────────────── */
 const CONFIG = {
-  title: "이상형 월드컵",
-  leftColor: "#7CB342",   // 왼쪽(선택1) 버튼 색
-  rightColor: "#1E9E93",  // 오른쪽(선택2) 버튼 색
+  appTitle: "이상형 월드컵",
   headerColor: "#6EE05B", // 상단 헤더 색
-  items: [
-    { name: "선택1",  image: "#" },
-    { name: "선택2",  image: "#" },
-    { name: "선택3",  image: "#" },
-    { name: "선택4",  image: "#" },
-    { name: "선택5",  image: "#" },
-    { name: "선택6",  image: "#" },
-    { name: "선택7",  image: "#" },
-    { name: "선택8",  image: "#" },
-    { name: "선택9",  image: "#" },
-    { name: "선택10", image: "#" },
-    { name: "선택11", image: "#" },
-    { name: "선택12", image: "#" },
-    { name: "선택13", image: "#" },
-    { name: "선택14", image: "#" },
-    { name: "선택15", image: "#" },
-    { name: "선택16", image: "#" },
+  bannerImage: "#",       // 하단 광고 배너 이미지 주소 (나중에 실제 URL로 교체)
+  supabaseUrl: "YOUR_SUPABASE_URL",       // 예: https://xxxx.supabase.co
+  supabaseAnonKey: "YOUR_SUPABASE_ANON_KEY",
+
+  worldcups: [
+    {
+      id: "wc1",
+      title: "월드컵 1",
+      thumbnail: "thumbnail.png",
+      leftColor: "#7CB342",
+      rightColor: "#1E9E93",
+      items: [
+        { name: "각성레인보우지우현현",  image: "0606.gif" },
+        { name: "그림판지우현",  image: "0312지우현.png" },
+        { name: "매드무비지우현현",  image: "0502-_3__2_.gif" },
+        { name: "ㅌㅌ",  image: "0610 (1).gif" },
+        { name: "노숙지우현",  image: "0610.gif" },
+        { name: "방지턱지우현",  image: "0625.gif" },
+        { name: "아니다",  image: "IMG_1177.gif" },
+        { name: "인사지우현",  image: "SPOILER_0617.gif" },
+        { name: "후보9",  image: "thumbnail.png" },
+        { name: "후보10", image: "#" },
+        { name: "후보11", image: "#" },
+        { name: "후보12", image: "#" },
+        { name: "후보13", image: "#" },
+        { name: "후보14", image: "#" },
+        { name: "후보15", image: "#" },
+        { name: "후보16", image: "#" },
+      ],
+    },
   ],
 };
 </script>
@@ -60,6 +90,7 @@ const CONFIG = {
     background: var(--header);
     padding: 24px 16px;
     text-align: center;
+    cursor: pointer;
   }
   header h1 {
     font-size: 28px;
@@ -86,6 +117,54 @@ const CONFIG = {
     text-align: center;
   }
 
+  /* 메뉴 화면 */
+  .menu-wrap {
+    width: 100%;
+  }
+  .menu-title {
+    text-align: center;
+    color: var(--ink);
+    font-weight: 800;
+    font-size: 20px;
+    margin-bottom: 24px;
+  }
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+  }
+  .menu-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0,0,0,.08);
+    cursor: pointer;
+    transition: transform .12s, box-shadow .12s;
+  }
+  .menu-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 26px rgba(0,0,0,.16);
+  }
+  .menu-thumb {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: var(--box);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    overflow: hidden;
+  }
+  .menu-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .menu-card-body {
+    padding: 14px 16px 18px;
+    color: var(--ink);
+  }
+  .menu-card-title { font-size: 17px; font-weight: 800; }
+  .menu-card-sub { font-size: 12px; color: #8A93A8; margin-top: 4px; }
+
   .match {
     display: flex;
     align-items: center;
@@ -94,11 +173,45 @@ const CONFIG = {
     width: 100%;
   }
 
+  .match {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6vw;
+    width: 100%;
+    transition: gap .4s ease;
+  }
+  .match.gap-collapse { gap: 0; }
+
   .side {
     display: flex;
     flex-direction: column;
     width: min(38vw, 340px);
     cursor: pointer;
+    transition: transform .35s ease, opacity .3s ease, width .4s ease, margin .4s ease;
+  }
+
+  /* 선택 안 된 쪽: 사라짐 */
+  .side.side-fade {
+    opacity: 0;
+    width: 0;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  /* 선택된 쪽: 확대되며 중앙으로 모임 */
+  .side.side-selected {
+    transform: scale(1.1);
+    z-index: 2;
+  }
+  .side.side-selected .imgbox {
+    box-shadow: 0 0 0 5px var(--right), 0 14px 34px rgba(0,0,0,.28);
+  }
+  .side.side-selected .choice-btn::after {
+    content: " ✔";
   }
 
   .imgbox {
@@ -114,16 +227,8 @@ const CONFIG = {
     overflow: hidden;
     transition: transform .12s, filter .12s;
   }
-  .side img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-  .side:hover .imgbox {
-    transform: scale(1.02);
-    filter: brightness(1.06);
-  }
+  .side img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .side:hover .imgbox { transform: scale(1.02); filter: brightness(1.06); }
 
   .choice-btn {
     margin-top: 14px;
@@ -144,22 +249,24 @@ const CONFIG = {
     font-weight: 900;
     color: #111;
     flex-shrink: 0;
+    transition: opacity .3s ease, width .4s ease, margin .4s ease;
   }
+  .vs.vs-fade { opacity: 0; width: 0; margin: 0; overflow: hidden; }
 
-  .progress {
-    margin-top: 30px;
-    color: #6B7690;
-    font-size: 13px;
-    text-align: center;
+  .progress { margin-top: 30px; color: #6B7690; font-size: 13px; text-align: center; }
+  .progress.hint-active {
+    color: var(--ink);
+    font-weight: 800;
+    font-size: 14px;
+    animation: hintPulse 1.1s ease-in-out infinite;
+  }
+  @keyframes hintPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .4; }
   }
 
   /* 결과 화면 */
-  .result-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px 16px 40px;
-  }
+  .result-wrap { display: flex; flex-direction: column; align-items: center; padding: 20px 16px 40px; }
   .result-card {
     background: #fff;
     border-radius: 18px;
@@ -169,34 +276,69 @@ const CONFIG = {
     max-width: 340px;
     color: var(--ink);
   }
-  .result-card .imgbox {
-    width: 220px;
-    margin: 0 auto;
-    border-radius: 12px;
-  }
+  .result-card .imgbox { width: 220px; margin: 0 auto; border-radius: 12px; }
   .result-card .crown { font-size: 32px; margin-bottom: 6px; }
-  .result-card .name {
-    font-size: 22px;
-    font-weight: 900;
-    margin-top: 14px;
-    color: var(--right);
-  }
+  .result-card .name { font-size: 22px; font-weight: 900; margin-top: 14px; color: var(--right); }
 
   button.next {
-    padding: 12px 26px;
+    padding: 12px 22px;
     border: none;
     border-radius: 10px;
     background: var(--ink);
     color: #fff;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: bold;
     cursor: pointer;
     margin-top: 20px;
   }
+  button.ghost { background: #fff; color: var(--ink); border: 2px solid var(--ink); }
+  .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
-  footer { margin: 6px 0 24px; color: #8A93A8; font-size: 12px; }
+  /* 통계 화면 */
+  .stats-wrap { width: 100%; max-width: 480px; padding: 20px 16px 10px; }
+  .stats-list {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.08);
+    overflow: hidden;
+  }
+  .stat-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #F0F0F0;
+    color: var(--ink);
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-row .rank { width: 26px; font-weight: 900; color: #A0A8BC; flex-shrink: 0; text-align: center; }
+  .stat-row:nth-child(1) .rank { color: #F5B301; }
+  .stat-row:nth-child(2) .rank { color: #9AA3B5; }
+  .stat-row:nth-child(3) .rank { color: #C97A3A; }
+  .stat-row .stat-name { flex: 1; font-weight: bold; font-size: 15px; }
+  .stat-row .stat-rate { font-weight: 900; color: var(--right); font-size: 15px; flex-shrink: 0; }
+  .stat-row .stat-detail { font-size: 12px; color: #A0A8BC; flex-shrink: 0; width: 70px; text-align: right; }
+
+    /* 하단 광고 배너 */
+    .ad-banner { width: 100%; max-width: 1100px; margin: 30px auto 24px; padding: 0 16px; }
+  .ad-banner .banner-inner {
+    width: 100%;
+    aspect-ratio: 6 / 1;
+    background: #D9D9D9;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8A93A8;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  .ad-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
   @media (max-width: 620px) {
+    .ad-banner { margin: 22px auto 18px; }
+    .ad-banner .banner-inner { aspect-ratio: 4 / 1; }
     .match { flex-direction: column; gap: 18px; }
     .vs { transform: rotate(90deg); font-size: 32px; }
     .side { width: min(70vw, 320px); }
@@ -204,27 +346,40 @@ const CONFIG = {
 </style>
 </head>
 <body>
-  <header>
+  <header onclick="showMenu()">
     <h1 id="title"></h1>
   </header>
   <main>
     <div id="game"></div>
   </main>
-  <footer id="footer"></footer>
+  <div class="ad-banner">
+    <div class="banner-inner" id="adBanner"></div>
+  </div>
 
 <script>
-  document.documentElement.style.setProperty("--left", CONFIG.leftColor);
-  document.documentElement.style.setProperty("--right", CONFIG.rightColor);
   document.documentElement.style.setProperty("--header", CONFIG.headerColor);
-  document.getElementById("title").textContent = CONFIG.title;
-  document.getElementById("footer").textContent = "개발자 체험 캠프 · 이상형 월드컵";
-  document.title = CONFIG.title;
+  document.getElementById("title").textContent = CONFIG.appTitle;
+  document.title = CONFIG.appTitle;
+
+  const adBanner = document.getElementById("adBanner");
+  if (CONFIG.bannerImage && CONFIG.bannerImage !== "#") {
+    adBanner.innerHTML = `<img src="${CONFIG.bannerImage}" alt="광고 배너">`;
+  } else {
+    adBanner.textContent = "광고 배너 영역 (가로형 이미지)";
+  }
 
   const box = document.getElementById("game");
 
+  // Supabase 클라이언트 초기화
+  let supabaseClient = null;
+  if (CONFIG.supabaseUrl && CONFIG.supabaseUrl !== "YOUR_SUPABASE_URL") {
+    supabaseClient = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+  }
+
   const ROUND_NAME = { 16: "8강", 8: "4강", 4: "준결승", 2: "결승" };
 
-  let currentRound = shuffle([...CONFIG.items]);
+  let activeWorldcup = null;   // 현재 진행 중인 월드컵 객체
+  let currentRound = [];
   let nextRound = [];
   let matchIndex = 0;
 
@@ -244,6 +399,47 @@ const CONFIG = {
     return `<span>이미지 영역</span>`;
   }
 
+  /* ── 메뉴 화면 ── */
+  function showMenu() {
+    activeWorldcup = null;
+    const cards = CONFIG.worldcups.map(wc => `
+      <div class="menu-card" onclick="startTournament('${wc.id}')">
+        <div class="menu-thumb">${
+          wc.thumbnail && wc.thumbnail !== "#"
+            ? `<img src="${wc.thumbnail}" alt="${wc.title}">`
+            : `<span>썸네일 영역</span>`
+        }</div>
+        <div class="menu-card-body">
+          <div class="menu-card-title">${wc.title}</div>
+          <div class="menu-card-sub">${wc.items.length}강 토너먼트</div>
+        </div>
+      </div>
+    `).join("");
+
+    box.innerHTML = `
+      <div class="menu-wrap">
+        <div class="menu-title">플레이할 월드컵을 선택하세요</div>
+        <div class="menu-grid">${cards}</div>
+      </div>
+    `;
+  }
+
+  /* ── 토너먼트 시작 ── */
+  function startTournament(id) {
+    const wc = CONFIG.worldcups.find(w => w.id === id);
+    if (!wc) return;
+    activeWorldcup = wc;
+    document.documentElement.style.setProperty("--left", wc.leftColor);
+    document.documentElement.style.setProperty("--right", wc.rightColor);
+    currentRound = shuffle([...wc.items]);
+    nextRound = [];
+    matchIndex = 0;
+    deciding = false;
+    pendingWinner = null;
+    pendingLoser = null;
+    showMatch();
+  }
+
   function showMatch() {
     if (matchIndex >= currentRound.length) {
       if (nextRound.length === 1) {
@@ -261,14 +457,14 @@ const CONFIG = {
     const totalMatches = currentRound.length / 2;
 
     box.innerHTML = `
-      <div class="round-label">${roundLabel} · ${matchNum} / ${totalMatches}</div>
+      <div class="round-label">${activeWorldcup.title} · ${roundLabel} · ${matchNum} / ${totalMatches}</div>
       <div class="match">
-        <div class="side left" onclick="choose(0)">
+        <div class="side left" onclick="selectWinner(0)">
           <div class="imgbox">${renderImg(left)}</div>
           <div class="choice-btn">${left.name}</div>
         </div>
         <div class="vs">VS</div>
-        <div class="side right" onclick="choose(1)">
+        <div class="side right" onclick="selectWinner(1)">
           <div class="imgbox">${renderImg(right)}</div>
           <div class="choice-btn">${right.name}</div>
         </div>
@@ -277,13 +473,79 @@ const CONFIG = {
     `;
   }
 
-  function choose(side) {
+  let deciding = false;      // 선택 애니메이션 진행 중인지 여부
+  let pendingWinner = null;
+  let pendingLoser = null;
+
+  // 1단계: 이미지를 클릭하면 선택 애니메이션 실행 (아직 다음으로 안 넘어감)
+  function selectWinner(side) {
+    if (deciding) return;
+    deciding = true;
+
     const left = currentRound[matchIndex];
     const right = currentRound[matchIndex + 1];
-    const winner = side === 0 ? left : right;
-    nextRound.push(winner);
+    pendingWinner = side === 0 ? left : right;
+    pendingLoser = side === 0 ? right : left;
+
+    const matchEl = box.querySelector(".match");
+    const winnerEl = box.querySelector(side === 0 ? ".side.left" : ".side.right");
+    const loserEl = box.querySelector(side === 0 ? ".side.right" : ".side.left");
+    const vsEl = box.querySelector(".vs");
+    const progressEl = box.querySelector(".progress");
+
+    matchEl.classList.add("gap-collapse");
+    loserEl.classList.add("side-fade");
+    loserEl.onclick = null;
+    vsEl.classList.add("vs-fade");
+
+    winnerEl.classList.add("side-selected");
+    winnerEl.onclick = () => proceedNext(); // 2단계: 한 번 더 클릭하면 다음으로
+
+    if (progressEl) {
+      progressEl.textContent = "한 번 더 클릭하면 다음으로 →";
+      progressEl.classList.add("hint-active");
+    }
+
+    recordMatch(pendingWinner.name, pendingLoser.name); // Supabase에 승/패 기록 (백그라운드)
+  }
+
+  // 2단계: 선택된(가운데로 모인) 이미지를 다시 클릭하면 다음 대결로 진행
+  function proceedNext() {
+    if (!pendingWinner) return;
+    nextRound.push(pendingWinner);
     matchIndex += 2;
+    pendingWinner = null;
+    pendingLoser = null;
+    deciding = false;
     showMatch();
+  }
+
+  // 대결 결과를 Supabase 'stats' 테이블에 반영 (월드컵별로 구분 저장)
+  async function recordMatch(winnerName, loserName) {
+    if (!supabaseClient || !activeWorldcup) return;
+    const wcId = activeWorldcup.id;
+    const keyOf = (name) => `${wcId}::${name}`;
+    try {
+      const { data: rows, error } = await supabaseClient
+        .from("stats")
+        .select("key, worldcup, name, wins, matches")
+        .in("key", [keyOf(winnerName), keyOf(loserName)]);
+      if (error) throw error;
+
+      const rowMap = {};
+      (rows || []).forEach(r => { rowMap[r.key] = r; });
+
+      const winnerRow = rowMap[keyOf(winnerName)] || { key: keyOf(winnerName), worldcup: wcId, name: winnerName, wins: 0, matches: 0 };
+      const loserRow = rowMap[keyOf(loserName)] || { key: keyOf(loserName), worldcup: wcId, name: loserName, wins: 0, matches: 0 };
+
+      winnerRow.wins += 1;
+      winnerRow.matches += 1;
+      loserRow.matches += 1;
+
+      await supabaseClient.from("stats").upsert([winnerRow, loserRow], { onConflict: "key" });
+    } catch (e) {
+      console.error("통계 저장 실패:", e);
+    }
   }
 
   function showWinner(winner) {
@@ -294,19 +556,88 @@ const CONFIG = {
           <div class="imgbox">${renderImg(winner)}</div>
           <div class="name">${winner.name}</div>
         </div>
-        <button class="next" onclick="restart()">다시 시작</button>
+        <div class="btn-row">
+          <button class="next" onclick="restart()">다시하기</button>
+          <button class="next ghost" onclick="showMenu()">메뉴화면</button>
+          <button class="next ghost" onclick="showStats()">통계보기</button>
+        </div>
       </div>
     `;
   }
 
   function restart() {
-    currentRound = shuffle([...CONFIG.items]);
+    currentRound = shuffle([...activeWorldcup.items]);
     nextRound = [];
     matchIndex = 0;
+    deciding = false;
+    pendingWinner = null;
+    pendingLoser = null;
     showMatch();
   }
 
-  showMatch();
+  // 현재 월드컵의 전체 통계를 승률 순으로 표시
+  async function showStats() {
+    if (!activeWorldcup) return showMenu();
+
+    if (!supabaseClient) {
+      box.innerHTML = `
+        <div class="stats-wrap">
+          <div class="round-label">${activeWorldcup.title} · 전체 통계</div>
+          <div class="progress">Supabase 설정(supabaseUrl / supabaseAnonKey)이 아직 안 되어 있어요.</div>
+          <div class="btn-row">
+            <button class="next" onclick="restart()">다시하기</button>
+            <button class="next ghost" onclick="showMenu()">메뉴화면</button>
+          </div>
+        </div>`;
+      return;
+    }
+
+    box.innerHTML = `<div class="round-label">통계 불러오는 중...</div>`;
+
+    try {
+      const { data, error } = await supabaseClient
+        .from("stats")
+        .select("name, wins, matches")
+        .eq("worldcup", activeWorldcup.id);
+      if (error) throw error;
+
+      const ranked = (data || [])
+        .map(r => ({ ...r, winRate: r.matches ? (r.wins / r.matches * 100) : 0 }))
+        .sort((a, b) => b.winRate - a.winRate || b.matches - a.matches);
+
+      const rowsHtml = ranked.length
+        ? ranked.map((r, i) => `
+            <div class="stat-row">
+              <span class="rank">${i + 1}</span>
+              <span class="stat-name">${r.name}</span>
+              <span class="stat-rate">${r.winRate.toFixed(1)}%</span>
+              <span class="stat-detail">${r.wins}승 ${r.matches}전</span>
+            </div>`).join("")
+        : `<div class="stat-row"><span class="stat-name">아직 쌓인 데이터가 없어요.</span></div>`;
+
+      box.innerHTML = `
+        <div class="stats-wrap">
+          <div class="round-label">${activeWorldcup.title} · 전체 통계 · 승률 순위</div>
+          <div class="stats-list">${rowsHtml}</div>
+          <div class="btn-row">
+            <button class="next" onclick="restart()">다시하기</button>
+            <button class="next ghost" onclick="showMenu()">메뉴화면</button>
+          </div>
+        </div>`;
+    } catch (e) {
+      console.error(e);
+      box.innerHTML = `
+        <div class="stats-wrap">
+          <div class="round-label">통계를 불러오지 못했어요.</div>
+          <div class="btn-row">
+            <button class="next" onclick="restart()">다시하기</button>
+            <button class="next ghost" onclick="showMenu()">메뉴화면</button>
+          </div>
+        </div>`;
+    }
+  }
+
+  showMenu();
 </script>
 </body>
 </html>
