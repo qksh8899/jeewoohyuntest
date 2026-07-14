@@ -3,112 +3,310 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>밸런스 게임</title>
+<title>이상형 월드컵</title>
 <script>
 /* ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-   미션 1 — title / subtitle / accent / team 을 우리 팀 것으로!
-   미션 2 — questions 를 우리 반 맞춤 질문으로 바꾸거나 추가하세요.
+   미션 — title / items 를 원하는 내용으로 바꾸세요.
+   items 는 총 16개 (8강 기준). image 자리에는 나중에 실제 이미지 주소를 넣으면 됩니다.
    ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ */
 const CONFIG = {
-  title: "우리 반 밸런스 게임",
-  subtitle: "당신의 선택은? 반 친구들과 비교해보세요",
-  accent: "#14B8A6",
-  team: "0팀",
-  questions: [
-    { a: "평생 라면만 먹기", b: "평생 급식만 먹기" },
-    { a: "시험 전날로 돌아가기", b: "발표 전날로 돌아가기" },
-    { a: "야자 없는 대신 아침 7시 등교", b: "야자 있는 대신 10시 등교" },
-    { a: "게임 평생 금지", b: "유튜브 평생 금지" },
+  title: "이상형 월드컵",
+  leftColor: "#7CB342",   // 왼쪽(선택1) 버튼 색
+  rightColor: "#1E9E93",  // 오른쪽(선택2) 버튼 색
+  headerColor: "#6EE05B", // 상단 헤더 색
+  items: [
+    { name: "선택1",  image: "#" },
+    { name: "선택2",  image: "#" },
+    { name: "선택3",  image: "#" },
+    { name: "선택4",  image: "#" },
+    { name: "선택5",  image: "#" },
+    { name: "선택6",  image: "#" },
+    { name: "선택7",  image: "#" },
+    { name: "선택8",  image: "#" },
+    { name: "선택9",  image: "#" },
+    { name: "선택10", image: "#" },
+    { name: "선택11", image: "#" },
+    { name: "선택12", image: "#" },
+    { name: "선택13", image: "#" },
+    { name: "선택14", image: "#" },
+    { name: "선택15", image: "#" },
+    { name: "선택16", image: "#" },
   ],
 };
 </script>
 <style>
-  :root { --accent: #14B8A6; --ink: #22335C; --sub: #6B7690; --bg: #FAF8F2; }
+  :root {
+    --left: #7CB342;
+    --right: #1E9E93;
+    --header: #6EE05B;
+    --ink: #1F2937;
+    --bg: #ECECEC;
+    --box: #6B7488;
+  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
-  h1 { font-size: 30px; margin-top: 8px; }
-  .subtitle { color: var(--sub); margin: 6px 0 20px; }
-  .card { background: #fff; border-radius: 16px; box-shadow: 0 4px 16px rgba(34,51,92,.08); padding: 24px; width: 100%; max-width: 520px; text-align: center; }
-  .qnum { color: var(--accent); font-weight: 800; letter-spacing: 1px; font-size: 13px; }
-  .vs { font-size: 20px; font-weight: 800; color: var(--sub); margin: 10px 0; }
-  .opt { display: block; width: 100%; padding: 20px 14px; margin: 8px 0; font-size: 17px; font-weight: bold; border: 3px solid var(--accent); background: #fff; color: var(--ink); border-radius: 14px; cursor: pointer; transition: transform .08s; }
-  .opt:hover { transform: scale(1.02); background: var(--accent); color: #fff; }
-  .bar { height: 30px; border-radius: 8px; background: #EEE8DA; margin: 6px 0 14px; overflow: hidden; text-align: left; }
-  .fill { height: 100%; background: var(--accent); color: #fff; font-size: 13px; font-weight: bold; display: flex; align-items: center; padding-left: 8px; white-space: nowrap; min-width: 34px; }
-  .label { font-size: 14px; text-align: left; font-weight: bold; }
-  button.next { padding: 12px 26px; border: none; border-radius: 10px; background: var(--ink); color: #fff; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 6px; }
-  footer { margin-top: 22px; color: var(--sub); font-size: 12px; }
+  body {
+    font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    background: var(--bg);
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* 상단 헤더 바 */
+  header {
+    width: 100%;
+    background: var(--header);
+    padding: 24px 16px;
+    text-align: center;
+  }
+  header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: .5px;
+  }
+
+  main {
+    width: 100%;
+    max-width: 1100px;
+    padding: 40px 16px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .round-label {
+    color: #6B7690;
+    font-weight: 800;
+    letter-spacing: 1px;
+    font-size: 15px;
+    margin-bottom: 22px;
+    text-align: center;
+  }
+
+  .match {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6vw;
+    width: 100%;
+  }
+
+  .side {
+    display: flex;
+    flex-direction: column;
+    width: min(38vw, 340px);
+    cursor: pointer;
+  }
+
+  .imgbox {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: var(--box);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    overflow: hidden;
+    transition: transform .12s, filter .12s;
+  }
+  .side img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .side:hover .imgbox {
+    transform: scale(1.02);
+    filter: brightness(1.06);
+  }
+
+  .choice-btn {
+    margin-top: 14px;
+    padding: 22px 10px;
+    text-align: center;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 14px;
+    transition: transform .12s;
+  }
+  .side.left .choice-btn { background: var(--left); }
+  .side.right .choice-btn { background: var(--right); }
+  .side:hover .choice-btn { transform: scale(1.02); }
+
+  .vs {
+    font-size: 44px;
+    font-weight: 900;
+    color: #111;
+    flex-shrink: 0;
+  }
+
+  .progress {
+    margin-top: 30px;
+    color: #6B7690;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  /* 결과 화면 */
+  .result-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px 40px;
+  }
+  .result-card {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.12);
+    padding: 32px 24px;
+    text-align: center;
+    max-width: 340px;
+    color: var(--ink);
+  }
+  .result-card .imgbox {
+    width: 220px;
+    margin: 0 auto;
+    border-radius: 12px;
+  }
+  .result-card .crown { font-size: 32px; margin-bottom: 6px; }
+  .result-card .name {
+    font-size: 22px;
+    font-weight: 900;
+    margin-top: 14px;
+    color: var(--right);
+  }
+
+  button.next {
+    padding: 12px 26px;
+    border: none;
+    border-radius: 10px;
+    background: var(--ink);
+    color: #fff;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 20px;
+  }
+
+  footer { margin: 6px 0 24px; color: #8A93A8; font-size: 12px; }
+
+  @media (max-width: 620px) {
+    .match { flex-direction: column; gap: 18px; }
+    .vs { transform: rotate(90deg); font-size: 32px; }
+    .side { width: min(70vw, 320px); }
+  }
 </style>
 </head>
 <body>
-  <h1 id="title"></h1>
-  <p class="subtitle" id="subtitle"></p>
-  <div class="card" id="game"></div>
+  <header>
+    <h1 id="title"></h1>
+  </header>
+  <main>
+    <div id="game"></div>
+  </main>
   <footer id="footer"></footer>
 
 <script>
-  document.documentElement.style.setProperty("--accent", CONFIG.accent);
+  document.documentElement.style.setProperty("--left", CONFIG.leftColor);
+  document.documentElement.style.setProperty("--right", CONFIG.rightColor);
+  document.documentElement.style.setProperty("--header", CONFIG.headerColor);
   document.getElementById("title").textContent = CONFIG.title;
-  document.getElementById("subtitle").textContent = CONFIG.subtitle;
-  document.getElementById("footer").textContent = CONFIG.team + " 제작 · 개발자 체험 캠프";
+  document.getElementById("footer").textContent = "개발자 체험 캠프 · 이상형 월드컵";
   document.title = CONFIG.title;
 
-  const KEY = "votes_balance";                 // 투표가 쌓이는 창고 (localStorage)
   const box = document.getElementById("game");
-  let idx = 0;
 
-  function loadVotes() { return JSON.parse(localStorage.getItem(KEY) || "{}"); }
+  const ROUND_NAME = { 16: "8강", 8: "4강", 4: "준결승", 2: "결승" };
 
-  function showQuestion() {
-    if (idx >= CONFIG.questions.length) return showSummary();
-    const q = CONFIG.questions[idx];
+  let currentRound = shuffle([...CONFIG.items]);
+  let nextRound = [];
+  let matchIndex = 0;
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function renderImg(item) {
+    if (item.image && item.image !== "#") {
+      return `<img src="${item.image}" alt="${item.name}">`;
+    }
+    return `<span>이미지 영역</span>`;
+  }
+
+  function showMatch() {
+    if (matchIndex >= currentRound.length) {
+      if (nextRound.length === 1) {
+        return showWinner(nextRound[0]);
+      }
+      currentRound = nextRound;
+      nextRound = [];
+      matchIndex = 0;
+    }
+
+    const left = currentRound[matchIndex];
+    const right = currentRound[matchIndex + 1];
+    const roundLabel = ROUND_NAME[currentRound.length] || (currentRound.length + "강");
+    const matchNum = Math.floor(matchIndex / 2) + 1;
+    const totalMatches = currentRound.length / 2;
+
     box.innerHTML = `
-      <div class="qnum">Q${idx + 1} / ${CONFIG.questions.length}</div>
-      <button class="opt" onclick="vote('a')">${q.a}</button>
-      <div class="vs">VS</div>
-      <button class="opt" onclick="vote('b')">${q.b}</button>`;
+      <div class="round-label">${roundLabel} · ${matchNum} / ${totalMatches}</div>
+      <div class="match">
+        <div class="side left" onclick="choose(0)">
+          <div class="imgbox">${renderImg(left)}</div>
+          <div class="choice-btn">${left.name}</div>
+        </div>
+        <div class="vs">VS</div>
+        <div class="side right" onclick="choose(1)">
+          <div class="imgbox">${renderImg(right)}</div>
+          <div class="choice-btn">${right.name}</div>
+        </div>
+      </div>
+      <div class="progress">남은 인원: ${currentRound.length - matchIndex}명 (이번 라운드)</div>
+    `;
   }
 
-  function vote(pick) {
-    const votes = loadVotes();
-    if (!votes[idx]) votes[idx] = { a: 0, b: 0 };
-    votes[idx][pick]++;
-    localStorage.setItem(KEY, JSON.stringify(votes));    // ← 저장!
-    showResult(pick);
+  function choose(side) {
+    const left = currentRound[matchIndex];
+    const right = currentRound[matchIndex + 1];
+    const winner = side === 0 ? left : right;
+    nextRound.push(winner);
+    matchIndex += 2;
+    showMatch();
   }
 
-  function barHTML(label, count, total, mine) {
-    const pct = total ? Math.round(count / total * 100) : 0;
-    return `<div class="label">${label} ${mine ? "✔ 내 선택" : ""}</div>
-            <div class="bar"><div class="fill" style="width:${Math.max(pct, 8)}%">${pct}% (${count}표)</div></div>`;
-  }
-
-  function showResult(pick) {
-    const q = CONFIG.questions[idx];
-    const v = loadVotes()[idx];
-    const total = v.a + v.b;
+  function showWinner(winner) {
     box.innerHTML = `
-      <div class="qnum">Q${idx + 1} 결과 — 지금까지 ${total}명 참여</div>
-      <div style="height:10px"></div>
-      ${barHTML(q.a, v.a, total, pick === "a")}
-      ${barHTML(q.b, v.b, total, pick === "b")}
-      <button class="next" onclick="idx++; showQuestion()">다음 질문 →</button>`;
+      <div class="result-wrap">
+        <div class="result-card">
+          <div class="crown">👑</div>
+          <div class="imgbox">${renderImg(winner)}</div>
+          <div class="name">${winner.name}</div>
+        </div>
+        <button class="next" onclick="restart()">다시 시작</button>
+      </div>
+    `;
   }
 
-  function showSummary() {
-    const votes = loadVotes();
-    let html = `<div class="qnum">전체 결과</div><div style="height:10px"></div>`;
-    CONFIG.questions.forEach((q, i) => {
-      const v = votes[i] || { a: 0, b: 0 };
-      const total = v.a + v.b;
-      const winner = v.a === v.b ? "동점!" : (v.a > v.b ? q.a : q.b);
-      html += `<div class="label">Q${i + 1}. 다수의 선택: <span style="color:var(--accent)">${winner}</span> (${total}명)</div><div style="height:8px"></div>`;
-    });
-    html += `<button class="next" onclick="idx=0; showQuestion()">처음부터 다시</button>`;
-    box.innerHTML = html;
+  function restart() {
+    currentRound = shuffle([...CONFIG.items]);
+    nextRound = [];
+    matchIndex = 0;
+    showMatch();
   }
 
-  showQuestion();
+  showMatch();
 </script>
 </body>
 </html>
