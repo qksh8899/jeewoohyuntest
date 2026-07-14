@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>밸런스 게임</title>
+<script>
+/* ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+   미션 1 — title / subtitle / accent / team 을 우리 팀 것으로!
+   미션 2 — questions 를 우리 반 맞춤 질문으로 바꾸거나 추가하세요.
+   ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ */
+const CONFIG = {
+  title: "우리 반 밸런스 게임",
+  subtitle: "당신의 선택은? 반 친구들과 비교해보세요",
+  accent: "#14B8A6",
+  team: "0팀",
+  questions: [
+    { a: "평생 라면만 먹기", b: "평생 급식만 먹기" },
+    { a: "시험 전날로 돌아가기", b: "발표 전날로 돌아가기" },
+    { a: "야자 없는 대신 아침 7시 등교", b: "야자 있는 대신 10시 등교" },
+    { a: "게임 평생 금지", b: "유튜브 평생 금지" },
+  ],
+};
+</script>
+<style>
+  :root { --accent: #14B8A6; --ink: #22335C; --sub: #6B7690; --bg: #FAF8F2; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
+  h1 { font-size: 30px; margin-top: 8px; }
+  .subtitle { color: var(--sub); margin: 6px 0 20px; }
+  .card { background: #fff; border-radius: 16px; box-shadow: 0 4px 16px rgba(34,51,92,.08); padding: 24px; width: 100%; max-width: 520px; text-align: center; }
+  .qnum { color: var(--accent); font-weight: 800; letter-spacing: 1px; font-size: 13px; }
+  .vs { font-size: 20px; font-weight: 800; color: var(--sub); margin: 10px 0; }
+  .opt { display: block; width: 100%; padding: 20px 14px; margin: 8px 0; font-size: 17px; font-weight: bold; border: 3px solid var(--accent); background: #fff; color: var(--ink); border-radius: 14px; cursor: pointer; transition: transform .08s; }
+  .opt:hover { transform: scale(1.02); background: var(--accent); color: #fff; }
+  .bar { height: 30px; border-radius: 8px; background: #EEE8DA; margin: 6px 0 14px; overflow: hidden; text-align: left; }
+  .fill { height: 100%; background: var(--accent); color: #fff; font-size: 13px; font-weight: bold; display: flex; align-items: center; padding-left: 8px; white-space: nowrap; min-width: 34px; }
+  .label { font-size: 14px; text-align: left; font-weight: bold; }
+  button.next { padding: 12px 26px; border: none; border-radius: 10px; background: var(--ink); color: #fff; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 6px; }
+  footer { margin-top: 22px; color: var(--sub); font-size: 12px; }
+</style>
+</head>
+<body>
+  <h1 id="title"></h1>
+  <p class="subtitle" id="subtitle"></p>
+  <div class="card" id="game"></div>
+  <footer id="footer"></footer>
+
+<script>
+  document.documentElement.style.setProperty("--accent", CONFIG.accent);
+  document.getElementById("title").textContent = CONFIG.title;
+  document.getElementById("subtitle").textContent = CONFIG.subtitle;
+  document.getElementById("footer").textContent = CONFIG.team + " 제작 · 개발자 체험 캠프";
+  document.title = CONFIG.title;
+
+  const KEY = "votes_balance";                 // 투표가 쌓이는 창고 (localStorage)
+  const box = document.getElementById("game");
+  let idx = 0;
+
+  function loadVotes() { return JSON.parse(localStorage.getItem(KEY) || "{}"); }
+
+  function showQuestion() {
+    if (idx >= CONFIG.questions.length) return showSummary();
+    const q = CONFIG.questions[idx];
+    box.innerHTML = `
+      <div class="qnum">Q${idx + 1} / ${CONFIG.questions.length}</div>
+      <button class="opt" onclick="vote('a')">${q.a}</button>
+      <div class="vs">VS</div>
+      <button class="opt" onclick="vote('b')">${q.b}</button>`;
+  }
+
+  function vote(pick) {
+    const votes = loadVotes();
+    if (!votes[idx]) votes[idx] = { a: 0, b: 0 };
+    votes[idx][pick]++;
+    localStorage.setItem(KEY, JSON.stringify(votes));    // ← 저장!
+    showResult(pick);
+  }
+
+  function barHTML(label, count, total, mine) {
+    const pct = total ? Math.round(count / total * 100) : 0;
+    return `<div class="label">${label} ${mine ? "✔ 내 선택" : ""}</div>
+            <div class="bar"><div class="fill" style="width:${Math.max(pct, 8)}%">${pct}% (${count}표)</div></div>`;
+  }
+
+  function showResult(pick) {
+    const q = CONFIG.questions[idx];
+    const v = loadVotes()[idx];
+    const total = v.a + v.b;
+    box.innerHTML = `
+      <div class="qnum">Q${idx + 1} 결과 — 지금까지 ${total}명 참여</div>
+      <div style="height:10px"></div>
+      ${barHTML(q.a, v.a, total, pick === "a")}
+      ${barHTML(q.b, v.b, total, pick === "b")}
+      <button class="next" onclick="idx++; showQuestion()">다음 질문 →</button>`;
+  }
+
+  function showSummary() {
+    const votes = loadVotes();
+    let html = `<div class="qnum">전체 결과</div><div style="height:10px"></div>`;
+    CONFIG.questions.forEach((q, i) => {
+      const v = votes[i] || { a: 0, b: 0 };
+      const total = v.a + v.b;
+      const winner = v.a === v.b ? "동점!" : (v.a > v.b ? q.a : q.b);
+      html += `<div class="label">Q${i + 1}. 다수의 선택: <span style="color:var(--accent)">${winner}</span> (${total}명)</div><div style="height:8px"></div>`;
+    });
+    html += `<button class="next" onclick="idx=0; showQuestion()">처음부터 다시</button>`;
+    box.innerHTML = html;
+  }
+
+  showQuestion();
+</script>
+</body>
+</html>
